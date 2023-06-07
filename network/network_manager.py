@@ -3,6 +3,7 @@ from easysnmp import Session
 
 # https://easysnmp.readthedocs.io/en/latest/
 
+
 class RouterInterface:
     def __init__(self, name, ip, mask):
         self.name = name
@@ -115,9 +116,6 @@ class Network:
         """Checks if the provided IP is within the network."""
 
 
-
-
-
 class NetworkManager:
     ROUTE_NETWORK_OID = "IP-FORWARD-MIB::ipCidrRouteDest"
     ROUTE_MASK_OID = "IP-FORWARD-MIB::ipCidrRouteMask"
@@ -127,19 +125,19 @@ class NetworkManager:
     def __init__(self, access_ip, community):
         self.ip = Ip(access_ip)
         self.community = community
+        self.routers_in_network = []
         self.access_router = Router(self.get_sysname(self.ip), self.ip)
+        self.routers_in_network.append(self.access_router)
         self.set_routing_table(self.access_router)
-        self.print_routing_table(self.access_router.routing_table)
 
     @staticmethod
     def get_sysname(ip: Ip, community='rocom'):
         session = Session(hostname=str(ip), community=community, version=2)
-        sysname = session.get('sysName.0')
+        sysname = session.get('sysName.0').value
         return sysname
 
     def set_routing_table(self, router: Router):
         session = Session(hostname=str(router.ip), community=self.community, version=2)
-
         routes = session.walk(self.ROUTE_NETWORK_OID)
         for route in routes:
             destination = Ip(route.value)
@@ -147,8 +145,31 @@ class NetworkManager:
             network = Network(destination, netmask)
             next_hop = Ip(session.get(f'{self.ROUTE_NEXT_HOP_OID}.{route.oid_index}').value)
 
-            router.routing_table.append((network, next_hop))
+            if str(next_hop) != "0.0.0.0":
+                sysname = self.get_sysname(next_hop)
+                nexthope_router = Router(sysname, next_hop)
+                add_router = True
+                for router in self.routers_in_network:
+                    if router.name == nexthope_router.name:
+                        add_router = False
+                        break
+
+                if add_router == True:
+                    self.routers_in_network.append(nexthope_router)
+                    self.print_routers()
+                    self.set_routing_table(nexthope_router)
+
+            else:
+                sysname = 'local'
+            router.routing_table.append((network, next_hop, sysname))
+
+        self.print_routing_table(router.routing_table, router.name)
         return router.routing_table
+
+    def print_routers(self):
+        print("The routers in the network are:", end=" ")
+        router_names = [router.name for router in self.routers_in_network]
+        print(*router_names, sep=", ")
 
     @staticmethod
     def print_router_info(sysname, ips):
@@ -158,10 +179,11 @@ class NetworkManager:
             print(f"IP: {ip}, Netmask: {data['Netmask']}, Speed: {data['Speed']}, Status: {data['Status']}")
 
     @staticmethod
-    def print_routing_table(routing_table):
-        print("Routing Table:")
-        for network, nexthop in routing_table:
-            print(f"Network: {network.get_ip():15} Netmask: {network.get_mask().netmask_to_decimal():15} Next hop: {nexthop}")
+    def print_routing_table(routing_table, router_name=""):
+        print("Routing Table of" + router_name + ":")
+        for network, nexthop, sysname in routing_table:
+            print(
+                f"  Network: {network.get_ip():15} Netmask: {network.get_mask().netmask_to_decimal():15} Next hop: {nexthop} Sysname: {sysname}")
 
 
 if __name__ == '__main__':
