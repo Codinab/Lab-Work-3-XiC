@@ -1,6 +1,7 @@
 from network.network_manager import *
 from easysnmp import Session
 
+
 def main():
     router_ip = input('Router\'s IP: ')
     community_string = input('Community string: ')
