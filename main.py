@@ -1,30 +1,17 @@
-from network.management import NetworkManager
-from network.topology import NetworkTopology
-from routing.summarization import RouteSummarizer
-
+from network.network_manager import *
+from easysnmp import Session
 
 def main():
-    # Dades de configuració
-    router_ip = '192.168.0.1'
-    community_string = 'rocom'
+    router_ip = input('Router\'s IP: ')
+    community_string = input('Community string: ')
+
+    if router_ip == '':
+        exit("No IP has been entered.")
+    if community_string == '':
+        exit("No community string has been entered.")
 
     network_manager = NetworkManager(router_ip, community_string)
-    sysname = network_manager.poll_router()
-    ips = network_manager.get_ips()
-    network_manager.print_router_info(sysname, ips)
-
-    routing_table = network_manager.retrieve_routing_table()
-    network_manager.print_routing_table(routing_table)
-
-    route_summarizer = RouteSummarizer(routing_table)
-    route_summaries = route_summarizer.create_route_summaries()
-    route_summarizer.print_route_summaries(route_summaries)
-
-    network_topology = NetworkTopology()
-    network_topology.add_router(sysname)
-    network_topology.add_connection('Router1', 'Router2')
-    network_topology.add_connection('Router2', 'Router3')
-    network_topology.plot_topology()
+    print(network_manager.set_routing_table())
 
 
 if __name__ == '__main__':
