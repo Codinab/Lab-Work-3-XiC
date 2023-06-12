@@ -1,4 +1,5 @@
 from easysnmp import Session
+import ipaddress
 
 
 # https://easysnmp.readthedocs.io/en/latest/
@@ -280,6 +281,14 @@ class NetworkManager:
         for network, nexthop, sysname in routing_table:
             print(
                 f"  Network: {network.get_ip():15} Netmask: {network.get_mask().netmask_to_decimal():15} Next hop: {nexthop} Sysname: {sysname}")
+
+    
+
+    @staticmethod
+    def translate_to_net(ip_address: Ip, subnet_mask: Netmask):
+        ip_network = ipaddress.IPv4Network(str(ip_address) + '/' + str(subnet_mask.netmask_to_cidr()), strict=False)
+        network_address = str(ip_network.network_address)
+        return Ip(network_address)
 
 
 if __name__ == '__main__':
