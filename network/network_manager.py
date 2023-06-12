@@ -244,17 +244,17 @@ class NetworkManager:
 
             if str(next_hop) != "0.0.0.0":
                 sysname = self.get_sysname(next_hop)
-                nexthope_router = Router(sysname, next_hop)
+                nexthop_router = Router(sysname, next_hop)
                 add_router = True
                 for router in self.routers_in_network:
-                    if router.name == nexthope_router.name:
+                    if router.name == nexthop_router.name:
                         add_router = False
                         break
 
-                if add_router == True:
-                    self.routers_in_network.append(nexthope_router)
+                if add_router:
+                    self.routers_in_network.append(nexthop_router)
                     self.print_routers()
-                    self.set_routing_table(nexthope_router)
+                    self.set_routing_table(nexthop_router)
 
             else:
                 sysname = 'local'
