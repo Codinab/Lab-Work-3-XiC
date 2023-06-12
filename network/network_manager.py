@@ -5,10 +5,14 @@ from easysnmp import Session
 
 
 class RouterInterface:
-    def __init__(self, name, ip, mask):
+    def __init__(self, name, ip, network, speed):
         self.name = name
+        self.network = network
         self.ip = ip
-        self.mask = mask
+        self.speed = speed # in Mbps
+
+    def __str__(self):
+        return f"Name: {self.name}, Ip: {self.ip}, {self.network}, Speed: {self.speed} Mbps"
 
 
 class Ip:
@@ -22,12 +26,15 @@ class Ip:
         return sum(octet << (24 - i * 8) for i, octet in enumerate(octets))
 
     @staticmethod
-    def int_to_octets(ip):
+    def int_to_octets(ip_value):
         """Converts an integer IP to dotted decimal format."""
-        return '.'.join(str(ip >> (24 - i * 8) & 0xFF) for i in range(4))
+        return '.'.join(str(ip_value >> (24 - i * 8) & 0xFF) for i in range(4))
 
     def __str__(self):
         return self.int_to_octets(self.value)
+
+    def __eq__(self, other):
+        return self.value == other.value
 
 
 class Netmask:
@@ -61,6 +68,14 @@ class Netmask:
     def wildcard_to_cidr(self):
         """Converts a wildcard to CIDR notation."""
         return sum(bin(int(x)).count('1') for x in self.int_to_cidr(self.wildcard).split('.'))
+
+    def is_host_mask(self):
+        """Checks if the netmask is a host mask."""
+        return self.netmask == 0xFFFFFFFF
+
+    def is_default_mask(self):
+        """Checks if the netmask is a default mask."""
+        return self.netmask == 0x00000000
 
 
 class Router:
@@ -104,6 +119,7 @@ class Network:
     def __init__(self, ip: Ip, netmask: Netmask):
         self.ip = ip
         self.mask = netmask
+        self.hosts = []
 
     def get_ip(self):
         return Ip.int_to_octets(self.ip.value)
@@ -112,8 +128,19 @@ class Network:
         """Returns the network mask in integer format."""
         return self.mask
 
-    def in_network(self, ip):
+    def get_hosts(self) -> list:
+        return self.hosts
+
+    def add_host(self, host: Ip):
+        self.hosts.append(host)
+
+    def in_network(self, ip: Ip):
         """Checks if the provided IP is within the network."""
+        return self.hosts.count(ip) > 0
+
+
+    def __str__(self):
+        return "Network: " + Ip.int_to_octets(self.ip.value) + '/' + str(self.mask.netmask_to_cidr())
 
 
 class NetworkManager:
@@ -121,14 +148,68 @@ class NetworkManager:
     ROUTE_MASK_OID = "IP-FORWARD-MIB::ipCidrRouteMask"
     ROUTE_NEXT_HOP_OID = "IP-FORWARD-MIB::ipCidrRouteNextHop"
     ROUTE_TYPE_OID = "IP-FORWARD-MIB::ipCidrRouteType"
+    IF_NAME_OID = "IF-MIB::ifName"
+    IF_DESCR_OID = "IF-MIB::ifDescr"
+    IF_SPEED_OID = "IF-MIB::ifSpeed"
+    IP_ADDR_OID = "IP-MIB::ipAdEntAddr"
+    IP_MASK_OID = "IP-MIB::ipAdEntNetMask"
 
     def __init__(self, access_ip, community):
         self.ip = Ip(access_ip)
         self.community = community
         self.routers_in_network = []
+        self.networks = {}
+
         self.access_router = Router(self.get_sysname(self.ip), self.ip)
         self.routers_in_network.append(self.access_router)
+
         self.set_routing_table(self.access_router)
+        self.get_interfaces_info(self.access_router)
+        for network in self.networks.values():
+            print(network)
+
+    def get_interfaces_info(self, router: Router):
+        session = Session(hostname=str(router.ip), community=self.community, version=2)
+
+        if_descr = session.walk(self.IF_DESCR_OID)
+        if_speed = session.walk(self.IF_SPEED_OID)
+        if_ip_address = session.walk(self.IP_ADDR_OID)
+        if_ip_mask = session.walk(self.IP_MASK_OID)
+
+        for i in range(len(if_ip_address)):
+            # Skip down interfaces and loopback interfaces
+            if if_descr[i].value.count('Vo') > 0 or if_descr[i].value.count('Nu') > 0:
+                continue
+
+            # Get the IP address and subnet mask for the interface
+            ip = Ip(if_ip_address[i].value)
+            mask = Netmask(if_ip_mask[i].value)
+
+            # Translate the IP address and subnet mask to the network IP
+            network_ip = self.translate_to_net(ip, mask)
+
+            # Check if the network IP already exists in the network dictionary
+            if self.networks.get(str(network_ip)) is None:
+                # Create a new Network object for the network IP
+                network = Network(network_ip, mask)
+
+                # Add the new network to the networks dictionary
+                self.networks[str(network_ip)] = network
+            else:
+                # Retrieve the existing network from the networks dictionary
+                network = self.networks.get(network_ip)
+
+            # Create a RouterInterface object with the interface details
+            interface = RouterInterface(if_descr[i].value, ip, network, if_speed[i].value)
+
+            # Add the interface to the router's interface list
+            router.add_interface(interface)
+
+            # Add the network to the router's network list
+            router.add_network(network)
+
+            # Add the IP address to the network's list of hosts
+            network.add_host(ip)
 
     @staticmethod
     def get_sysname(ip: Ip, community='rocom'):
@@ -137,6 +218,21 @@ class NetworkManager:
         return sysname
 
     def set_routing_table(self, router: Router):
+        session = Session(hostname=str(router.ip), community=self.community, version=2)
+        routes = session.walk(self.ROUTE_NETWORK_OID)
+
+        for route in routes:
+            destination = Ip(route.value)
+            netmask = Netmask(session.get(f'{self.ROUTE_MASK_OID}.{route.oid_index}').value)
+            network = Network(destination, netmask)
+            if not netmask.is_host_mask():
+                router.add_network(network)
+            next_hop = Ip(session.get(f'{self.ROUTE_NEXT_HOP_OID}.{route.oid_index}').value)
+
+
+    # def set_interface(self, )
+
+    def set_routing_table_old(self, router: Router):
         session = Session(hostname=str(router.ip), community=self.community, version=2)
         routes = session.walk(self.ROUTE_NETWORK_OID)
         for route in routes:
