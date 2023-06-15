@@ -10,7 +10,7 @@ class RouterInterface:
         self.name = name
         self.network = network
         self.ip = ip
-        self.speed = speed # in Mbps
+        self.speed = speed  # in Mbps
 
     def __str__(self):
         return f"Name: {self.name}, Ip: {self.ip}, {self.network}, Speed: {self.speed} Mbps"
@@ -36,6 +36,9 @@ class Ip:
 
     def __eq__(self, other):
         return self.value == other.value
+
+    def __lt__(self, other):
+        return self.value < other.value
 
 
 class Netmask:
@@ -134,14 +137,30 @@ class Network:
 
     def add_host(self, host: Ip):
         self.hosts.append(host)
+        self.hosts.sort()  # Sorts the hosts in ascending order
 
     def in_network(self, ip: Ip):
         """Checks if the provided IP is within the network."""
         return self.hosts.count(ip) > 0
 
-
     def __str__(self):
         return "Network: " + Ip.int_to_octets(self.ip.value) + '/' + str(self.mask.netmask_to_cidr())
+
+
+class NetworkExplorer:
+    def __init__(self, networks):
+        self.networks = networks
+        self.routers = []
+        self.__explore_networks__()
+
+    def __explore_networks__(self):
+        for network in self.networks:
+            network.get_hosts()[-1]
+
+            # for host in network.get_hosts():
+            #    router = Router(host, host)
+            #    router.add_network(network)
+            #    self.routers.append(router)
 
 
 class NetworkManager:
@@ -151,6 +170,7 @@ class NetworkManager:
     ROUTE_TYPE_OID = "IP-FORWARD-MIB::ipCidrRouteType"
     IF_NAME_OID = "IF-MIB::ifName"
     IF_DESCR_OID = "IF-MIB::ifDescr"
+    IF_TYPE_OID = "IF-MIB::ifType"
     IF_SPEED_OID = "IF-MIB::ifSpeed"
     IP_ADDR_OID = "IP-MIB::ipAdEntAddr"
     IP_MASK_OID = "IP-MIB::ipAdEntNetMask"
@@ -166,13 +186,16 @@ class NetworkManager:
 
         self.set_routing_table(self.access_router)
         self.get_interfaces_info(self.access_router)
-        for network in self.networks.values():
-            print(network)
+
+        self.network_explorer = NetworkExplorer(
+            network for network in self.networks.values() if not network.in_network(self.ip)
+        )
 
     def get_interfaces_info(self, router: Router):
         session = Session(hostname=str(router.ip), community=self.community, version=2)
 
         if_descr = session.walk(self.IF_DESCR_OID)
+        if_name = session.walk(self.IF_NAME_OID)
         if_speed = session.walk(self.IF_SPEED_OID)
         if_ip_address = session.walk(self.IP_ADDR_OID)
         if_ip_mask = session.walk(self.IP_MASK_OID)
@@ -230,7 +253,6 @@ class NetworkManager:
                 router.add_network(network)
             next_hop = Ip(session.get(f'{self.ROUTE_NEXT_HOP_OID}.{route.oid_index}').value)
 
-
     # def set_interface(self, )
 
     def set_routing_table_old(self, router: Router):
@@ -281,8 +303,6 @@ class NetworkManager:
         for network, nexthop, sysname in routing_table:
             print(
                 f"  Network: {network.get_ip():15} Netmask: {network.get_mask().netmask_to_decimal():15} Next hop: {nexthop} Sysname: {sysname}")
-
-    
 
     @staticmethod
     def translate_to_net(ip_address: Ip, subnet_mask: Netmask):
