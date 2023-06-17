@@ -20,9 +20,6 @@ class NetworkManager:
         self.access_router = Router(self.ip)
         self.access_router.get_name(self.community)
 
-        # self.set_routing_table(self.access_router)
-        # self.get_interfaces_info(self.access_router)
-
         self.access_router.get_interfaces_info(self.community)
 
         self.access_router.set_routing_table(self.community)
@@ -41,19 +38,6 @@ class NetworkManager:
             print(f"Network: {network}")
             for router in network.hosts:
                 print(f"  {router}")
-
-    # def get_shortest_path(src_ip, dst_ip):
-    #    src_ip = Ip(src_ip)
-    #    dst_ip = Ip(dst_ip)
-    #
-    #    for subnet, next_hops in routing_tables.items():
-    #        if src_ip in subnet and dst_ip in subnet:
-    #            path = f"{src_ip}:{next_hops[0]}"
-    #            for i in range(len(next_hops) - 1):
-    #                path += f" → {next_hops[i + 1]}:{dst_ip}"
-    #            return path
-    #
-    #    return "No route found"
     #
     def print_routers(self):
         print("The routers in the network are:")

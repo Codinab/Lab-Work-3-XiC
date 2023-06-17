@@ -115,11 +115,17 @@ class Router:
         for route in routes:
             destination = Ip(route.value)
             netmask = Netmask(session.get(f'{ROUTE_MASK_OID}.{route.oid_index}').value)
+
+            # Separate the network into destination and mask
             network = Network(destination, netmask)
 
             next_hop = Ip(session.get(f'{ROUTE_NEXT_HOP_OID}.{route.oid_index}').value)
 
-            self.routing_table.append((network, next_hop))
+            # Get the route type
+            route_type = session.get(f'{ROUTE_TYPE_OID}.{route.oid_index}').value
+
+            # Add the route type to the tuple
+            self.routing_table.append((network, next_hop, route_type))
 
     def get_known_routers(self, community):
         session = Session(hostname=str(self.ip), community=community, version=2)
