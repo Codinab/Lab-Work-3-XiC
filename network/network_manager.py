@@ -90,3 +90,23 @@ class NetworkManager:
 
 if __name__ == '__main__':
     network_manager = NetworkManager('10.0.0.2', 'rocom')
+    path = network_manager.routers[0].shortest_path(Ip("12.0.0.2"))
+    print([router.name for router in path])
+
+    path = network_manager.routers[0].shortest_path(Ip("12.0.0.1"))
+    print([router.name for router in path])
+
+    path = network_manager.routers[0].shortest_path(Ip("11.0.0.2"))
+    print([router.name for router in path])
+
+    path = network_manager.routers[0].shortest_path(Ip("11.0.0.1"))
+    print([router.name for router in path])
+
+    path = network_manager.routers[0].shortest_path(Ip("10.0.0.2"))
+    print([router.name for router in path])
+
+    path = network_manager.routers[0].shortest_path(Ip("10.0.0.3"))
+    print([router.name for router in path])
+
+
+

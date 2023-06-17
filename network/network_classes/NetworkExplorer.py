@@ -8,6 +8,7 @@ class NetworkExplorer:
         self.community = community
         self.routers.append(router)
 
+
     def explore(self):
         self.__explore_router__(self.routers[0])
         return self.routers

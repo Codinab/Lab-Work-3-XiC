@@ -1,3 +1,5 @@
+from collections import deque
+
 from easysnmp import Session
 
 from network.network_classes.Ip import Ip
@@ -54,6 +56,49 @@ class Router:
     def get_networks(self):
         return [interface.network for interface in self.interfaces]
 
+    def get_adjacent_routers(self):
+        adjacent_routers = []
+
+        for interface in self.get_interfaces():
+            network_hosts = interface.network.get_hosts()
+            adjacent_routers.extend([host for host in network_hosts if host != self])
+
+        return adjacent_routers
+
+    def shortest_path(self, destination_ip):
+        # Initialize a dictionary to track the visited routers and their previous routers
+        visited = {self.ip: None}
+
+        # Initialize a queue for BFS traversal
+        queue = deque([self])
+
+        while queue:
+            current_router = queue.popleft()
+
+            # Check if any interface IP of the current router matches the destination IP
+            for interface in current_router.interfaces:
+                if interface.ip == destination_ip:
+                    return self._build_path(current_router, visited)
+
+            # Visit adjacent routers
+            adjacent_routers = current_router.get_adjacent_routers()
+            for adjacent_router in adjacent_routers:
+                if adjacent_router.ip not in visited:
+                    visited[adjacent_router.ip] = current_router
+                    queue.append(adjacent_router)
+
+        # If the destination IP is not reachable from the current router, return an empty path
+        return []
+
+    @staticmethod
+    def _build_path(current_router, visited):
+        path = []
+        while current_router:
+            path.append(current_router)
+            current_router = visited[current_router.ip]
+        path.reverse()
+        return path
+
     def is_neighbor(self, router):
         for network in self.get_networks():
             for network2 in router.get_networks():
@@ -98,11 +143,13 @@ class Router:
         network = Network(network_ip, mask)
         interface = RouterInterface(details["IF_DESCR"], ip, network, details["IF_SPEED"])
 
-        # Ignore loopback interfaces
-        if details["IF_TYPE"] != "24":
+        # Ignore loopback interfaces and down interfaces
+        if details["IF_TYPE"] != "24" and details["IF_TYPE"] != "2":
             self.add_interface(interface)
 
         return details
+
+
 
     @staticmethod
     def _get_oid_value(session: Session, oid: str, index: str) -> str:
