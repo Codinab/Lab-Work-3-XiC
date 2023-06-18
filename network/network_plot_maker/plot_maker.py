@@ -6,6 +6,8 @@ from network.network_manager import NetworkManager
 
 def draw_network_map(network_manager: NetworkManager, graph_file):
     G = nx.Graph()
+    switches = {}
+    switches_count = 0
 
     # Add nodes (routers) to the graph
     for router in network_manager.routers:
@@ -14,8 +16,19 @@ def draw_network_map(network_manager: NetworkManager, graph_file):
 
         # Add edges (connections between routers)
         for interface in router.get_interfaces():
-            for adjacent_router in interface.get_other_hosts(router):
-                G.add_edge(router.name, adjacent_router.name, label=str(interface.network))  # Use the network as the label
+            hosts = interface.get_other_hosts(router)
+
+            if len(hosts) == 1:
+                G.add_edge(router.name, hosts[0].name, label=str(interface.network))
+            elif len(hosts) > 1:
+                if f"{(str(interface.network))}" not in switches:
+                    switches[f"{(str(interface.network))}"] = f"S{switches_count}"
+                    G.add_node(f"{interface.network}", label=f"S{switches_count}\n{interface.network}")
+                    G.add_edge(router.name, f"{interface.network}")
+                    print(f"Added switch {interface.network}")
+                    switches_count += 1
+                else:
+                    G.add_edge(router.name, f"{interface.network}")
 
     # Draw the graph with dynamic layout
     pos = nx.spring_layout(G)

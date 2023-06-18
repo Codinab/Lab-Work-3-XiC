@@ -1,0 +1,13 @@
+[0;1;32m●[0m snmptrapd.service - Simple Network Management Protocol (SNMP) Trap Daemon.
+     Loaded: loaded (/lib/systemd/system/snmptrapd.service; static)
+     Active: [0;1;32mactive (running)[0m since Mon 2023-06-19 00:25:43 CEST; 12min ago
+TriggeredBy: [0;1;32m●[0m snmptrapd.socket
+   Main PID: 25456 (snmptrapd)
+      Tasks: 1 (limit: 37371)
+     Memory: 2.4M
+        CPU: 14ms
+     CGroup: /system.slice/snmptrapd.service
+             └─25456 /usr/sbin/snmptrapd -LOw -f udp:162 udp6:162
+
+jun 19 00:25:43 alex-X670-AORUS-ELITE-AX systemd[1]: Starting Simple Network Management Protocol (SNMP) Trap Daemon....
+jun 19 00:25:43 alex-X670-AORUS-ELITE-AX systemd[1]: Started Simple Network Management Protocol (SNMP) Trap Daemon..
