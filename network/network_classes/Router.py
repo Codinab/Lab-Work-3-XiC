@@ -17,12 +17,6 @@ IF_SPEED_OID = "IF-MIB::ifSpeed"
 IP_ADDR_OID = "IP-MIB::ipAdEntAddr"
 IP_MASK_OID = "IP-MIB::ipAdEntNetMask"
 
-IF_NAME_OID = "IF-MIB::ifName"
-IF_DESCR_OID = "IF-MIB::ifDescr"
-IF_TYPE_OID = "IF-MIB::ifType"
-IF_SPEED_OID = "IF-MIB::ifSpeed"
-IP_ADDR_OID = "IP-MIB::ipAdEntAddr"
-IP_MASK_OID = "IP-MIB::ipAdEntNetMask"
 INTERFACE_INDEX_TO_ADDR_OID = "RFC1213-MIB::ipAdEntIfIndex"
 
 
@@ -32,6 +26,9 @@ class RouterInterface:
         self.network = network
         self.ip = ip
         self.speed = speed  # in Mbps
+
+    def get_other_hosts(self, router):
+        return [hosts for hosts in self.network.get_hosts() if hosts != router]
 
     def __str__(self):
         return f"Name: {self.name}, Ip: {self.ip}, {self.network}, Speed: {self.speed} Mbps"
@@ -134,8 +131,6 @@ class Router:
         }
         # Add check for 'Vo' or 'Nu' in IF_DESCR if necessary
 
-
-
         # Create a RouterInterface and add it to the router
         ip = Ip(details["IP_ADDRESS"])
         mask = Netmask(details["IP_MASK"])
@@ -148,8 +143,6 @@ class Router:
             self.add_interface(interface)
 
         return details
-
-
 
     @staticmethod
     def _get_oid_value(session: Session, oid: str, index: str) -> str:
@@ -206,4 +199,5 @@ class Router:
         return self.name == other.name
 
     def __str__(self):
-        return f"Name: {self.name}, Interfaces: {[str(interface) for interface in self.interfaces]}"
+        interfaces_str = "\n".join([str(interface) for interface in self.interfaces])
+        return f"Name: {self.name}, Interfaces: \n{interfaces_str}"

@@ -2,4 +2,4 @@ easysnmp~=0.2.6
 networkx~=3.1
 matplotlib==3.7.1
 colorama~=0.4.6
-pygraphviz~=1.11
+graphviz~=0.20.1
