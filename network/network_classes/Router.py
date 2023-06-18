@@ -30,6 +30,9 @@ class RouterInterface:
     def get_other_hosts(self, router):
         return [hosts for hosts in self.network.get_hosts() if hosts != router]
 
+    def name_speed(self):
+        return f"{self.name} {self.network} {self.speed} Mbps"
+
     def __str__(self):
         return f"Name: {self.name}, Ip: {self.ip}, {self.network}, Speed: {self.speed} Mbps"
 
@@ -199,5 +202,11 @@ class Router:
         return self.name == other.name
 
     def __str__(self):
-        interfaces_str = "\n".join([str(interface) for interface in self.interfaces])
-        return f"Name: {self.name}, Interfaces: \n{interfaces_str}"
+        interfaces_str = ""
+        for interface in self.interfaces:
+            interfaces_str += "\n       " + str(interface)
+
+        routing_table_str = ""
+        for route in self.routing_table:
+            routing_table_str += "\n       Net: " + str(route[0]) + " Next-Hop: " + str(route[1]) + " Type: " + str(route[2])
+        return f"Name: {self.name}\n    Interfaces: {str(interfaces_str)}\n    Routing Table: {str(routing_table_str)}"

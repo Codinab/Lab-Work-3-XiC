@@ -33,23 +33,16 @@ class NetworkManager:
         self.set_networks()
 
     def print_networks(self):
-        # Print networks and routers
+        print("Printing networks:")
         for network in self.networks:
-            print(f"Network: {network}")
-            for router in network.hosts:
-                print(f"  {router}")
+            print(f"{network} {[router.name for router in network.get_hosts()]}")
+
     #
     def print_routers(self):
-        print("The routers in the network are:")
+        print("Printing routers:")
         for router in self.routers:
-            print(f"  {router}")
+            print(f"{router}")
 
-    def print_networks(self):
-        for network in self.networks:
-            print(f"Network: {network}")
-            for host in network.get_hosts():
-                print(host.name, end=" ")
-            print()
 
     @staticmethod
     def print_router_info(sysname, ips):
@@ -86,27 +79,22 @@ class NetworkManager:
                 network.add_host(router)
 
 
-
-
 if __name__ == '__main__':
     network_manager = NetworkManager('10.0.0.2', 'rocom')
-    path = network_manager.routers[0].shortest_path(Ip("12.0.0.2"))
-    print([router.name for router in path])
+    # path = network_manager.routers[0].shortest_path(Ip("12.0.0.2"))
+    # print([router.name for router in path])
 
-    path = network_manager.routers[0].shortest_path(Ip("12.0.0.1"))
-    print([router.name for router in path])
+    # path = network_manager.routers[0].shortest_path(Ip("12.0.0.1"))
+    # print([router.name for router in path])
 
-    path = network_manager.routers[0].shortest_path(Ip("11.0.0.2"))
-    print([router.name for router in path])
+    # path = network_manager.routers[0].shortest_path(Ip("11.0.0.2"))
+    # print([router.name for router in path])
 
-    path = network_manager.routers[0].shortest_path(Ip("11.0.0.1"))
-    print([router.name for router in path])
+    # path = network_manager.routers[0].shortest_path(Ip("11.0.0.1"))
+    # print([router.name for router in path])
 
-    path = network_manager.routers[0].shortest_path(Ip("10.0.0.2"))
-    print([router.name for router in path])
+    # path = network_manager.routers[0].shortest_path(Ip("10.0.0.2"))
+    # print([router.name for router in path])
 
-    path = network_manager.routers[0].shortest_path(Ip("10.0.0.3"))
-    print([router.name for router in path])
-
-
-
+    # path = network_manager.routers[0].shortest_path(Ip("10.0.0.3"))
+    # print([router.name for router in path])
