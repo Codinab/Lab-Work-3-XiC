@@ -2,11 +2,11 @@ SNMP Data analyzer for Lab Work 3
 ==============================
 
 <div align="center">
-  <a href="https://drive.google.com/uc?export=view&id=1ftl2blHrrtjk3r1kaECPOjPa8LrpX2FI"><img src="https://drive.google.com/uc?export=view&id=1ftl2blHrrtjk3r1kaECPOjPa8LrpX2FI" style="width: 650px; max-width: 100%; height: auto" title="SNMP Data Analyzer Logo" />
+  <a href="https://drive.google.com/uc?export=view&id=1ftl2blHrrtjk3r1kaECPOjPa8LrpX2FI"><img src="https://drive.google.com/uc?export=view&id=1ftl2blHrrtjk3r1kaECPOjPa8LrpX2FI" style="width: 650px; max-width: 100%; height: auto" title="SNMP Data Analyzer Logo" /a>
 </div>
 
 # Introduction
-This project contains the code and resources necessary to implement an SNMP data analysis tool that was used in "Xarxes 2" subject in in [Computer Science Engineering](https://grauinformatica.udl.cat/en) at [Universitat de Lleida (UdL)](https://www.udl.cat/ca/en/).
+This project contains the code and resources necessary to implement an SNMP data analysis tool that was used in "Xarxes i Comunicacions" subject in [Computer Science Engineering](https://grauinformatica.udl.cat/en) at [Universitat de Lleida (UdL)](https://www.udl.cat/ca/en/).
 
 # Project Idea
 The SNMP Data Analyzer project aims to provide a comprehensive tool for managing and monitoring networks using the Simple Network Management Protocol (SNMP). The goal is to develop a user-friendly application that simplifies the process of gathering and analyzing SNMP data from network devices.
@@ -105,7 +105,91 @@ The program supports the following command-line options:
 
 You can replace `[my_network_graph_file]` with the desired name for the network graph file.
 
+# Tool Usage Guide
+
+Certainly! Here's the information provided in a README.md format:
+
+# Trap Catcher Setup
+
+To set up the trap catcher and parse SNMP traps, follow the steps below:
+
+## Configuration Steps
+
+1. Navigate to the `traps` directory:
+
+   ```shell
+   cd traps
+   ```
+
+3. Copy the trap configuration and parser files:
+
+   ```shell
+   # Copy configuration files
+   sudo cp snmptrapd.conf /etc/snmp
+   sudo cp snmpd.conf /usr/share/snmp
+
+   # Create directory for parser files
+   sudo mkdir /etc/snmp/scripts
+   sudo cp traps_parser /etc/snmp/scripts
+   ```
+
+5. Start the SNMP services:
+   ```shell
+   sudo systemctl start snmpd
+   sudo systemctl start snmptrapd
+   ```
+
+6. (Optional) Provide executable permissions to the traps_parser script if necessary:
+   ```shell
+   cd /etc/snmp/scripts
+   sudo chmod +x traps_parser
+   ```
+
+## Viewing Parsed Traps
+
+To view the parsed traps, perform the following steps:
+
+1. Check the output and view the traps information in the `/tmp/log` file.
+
+   Example Output:
+   ```
+   Trap: 
   
+   Host: <UNKNOWN>
+  
+   IP: UDP: [11.0.0.2]:65447->[10.0.0.3]:162
+  
+   Variables:
+   SNMPv2-MIB::sysUpTime.0 = 0:0:18:26.33
+   SNMPv2-MIB::snmpTrapOID.0 = OSPF-MIB::ospf.16.2.2
+   OSPF-MIB::ospfRouterId.OSPF-MIB::ospfRouterId = 12.0.0.1
+   OSPF-MIB::ospfNbrIpAddr.OSPF-MIB::ospfNbrIpAddr = 12.0.0.2
+   OSPF-MIB::ospfNbrAddressLessIndex.OSPF-MIB::ospfNbrAddressLessIndex = 0
+   OSPF-MIB::ospfNbrRtrId.OSPF-MIB::ospfNbrRtrId = 12.0.0.2
+   OSPF-MIB::ospfNbrState.OSPF-MIB::ospfNbrState = full
+  
+  
+   Trap: 
+  
+   Host: <UNKNOWN>
+  
+   IP: UDP: [10.0.0.2]:51107->[10.0.0.3]:162
+  
+   Variables:
+   SNMPv2-MIB::sysUpTime.0 = 0:0:00:12.11
+   SNMPv2-MIB::snmpTrapOID.0 = OSPF-MIB::ospf.16.2.2
+   OSPF-MIB::ospfRouterId.OSPF-MIB::ospfRouterId = 13.0.0.1
+   OSPF-MIB::ospfNbrIpAddr.OSPF-MIB::ospfNbrIpAddr = 11.0.0.2
+   OSPF-MIB::ospfNbrAddressLessIndex.OSPF-MIB::ospfNbrAddressLessIndex = 0
+   OSPF-MIB::ospfNbrRtrId.OSPF-MIB::ospfNbrRtrId = 12.0.0.1
+   OSPF-MIB::ospfNbrState.OSPF-MIB::ospfNbrState = twoWay
+   ```
+   
+   The parsed traps will be displayed in a structured format, showing relevant information such as router ID, interface ID, and interface state.
+
+Please note that the `/tmp/log` file will contain the output with the parsed traps information.
+
+
 # Authors
 
 * [Àlex Codina Braceros](https://github.com/Codinab)
