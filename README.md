@@ -2,7 +2,7 @@ SNMP Data analyzer for Lab Work 3
 ==============================
 
 <div align="center">
-  <a href="https://drive.google.com/uc?export=view&id=1ftl2blHrrtjk3r1kaECPOjPa8LrpX2FI"><img src="https://drive.google.com/uc?export=view&id=1ftl2blHrrtjk3r1kaECPOjPa8LrpX2FI" style="width: 650px; max-width: 100%; height: auto" title="SNMP Data Analyzer Logo" /a>
+  <a href="https://drive.google.com/uc?export=view&id=1ftl2blHrrtjk3r1kaECPOjPa8LrpX2FI"><img src="https://drive.google.com/uc?export=view&id=1ftl2blHrrtjk3r1kaECPOjPa8LrpX2FI" style="width: 650px; max-width: 100%; height: auto" title="SNMP Data Analyzer Logo"> </a>
 </div>
 
 # Introduction
@@ -60,25 +60,19 @@ python3 main.py
 ## Command-line Options
 The program supports the following command-line options:
 
-- `--router-ip`: Specifies the IP address of the router you want to connect to.
+
+- `-a`: Sets the program to print the networks, routers, and generate a graph with the topology of the networks.
 
   Example:
   ```shell
-  python3 main.py --router-ip 10.0.0.3
-  ```
-  
-- `--community-string`: Sets the community string to be used for authentication.
-
-  Example:
-  ```shell
-  python3 main.py --community-string rocom 
+  python3 main.py 10.0.0.3 -a
   ```
   
 - `--print-networks`: Prints a list of networks available on the router.
 
   Example: 
   ```shell
-  python3 main.py --print-networks
+  python3 main.py 10.0.0.3 --print-networks
   ```
 
 
@@ -86,28 +80,24 @@ The program supports the following command-line options:
 
   Example: 
   ```shell
-  python3 main.py --print-routers
+  python3 main.py 10.0.0.3 --print-routers
   ```
 
 - `--create-network-graph`: Generates a graphical representation of the network.
 
   Example: 
   ```shell
-  python3 main.py --create-network-graph
+  python3 main.py 10.0.0.3 --create-network-graph
   ```
 
 - `--graph-file`: Specifies the name of the file to save the network graph (default: network_map).
 
   Example: 
   ```shell
-  python3 main.py --graph-file [my_network_graph_file]
+  python3 main.py 10.0.0.3 --graph-file [my_network_graph_file]
   ```
 
 You can replace `[my_network_graph_file]` with the desired name for the network graph file.
-
-# Tool Usage Guide
-
-Certainly! Here's the information provided in a README.md format:
 
 # Trap Catcher Setup
 
