@@ -78,6 +78,24 @@ class NetworkManager:
                 network = interface.network
                 network.add_host(router)
 
+    def get_shortest_path(self, ip_origin, ip_destination):
+        # Retrieve the Router instances from the IP addresses
+        router_origin = next((router for router in self.routers if router.ip == Ip(ip_origin)), None)
+        router_destination = next((router for router in self.routers if
+                                   any(interface.ip == Ip(ip_destination) for interface in router.interfaces)), None)
+
+        # Check if both routers are found
+        if not router_origin:
+            print(f"Router with IP {ip_origin} not found.")
+            return
+        if not router_destination:
+            print(f"Router with IP {ip_destination} not found.")
+            return
+
+        # Find the shortest path
+        path = router_origin.shortest_path(Ip(ip_destination))
+        return path
+
 
 if __name__ == '__main__':
     network_manager = NetworkManager('10.0.0.2', 'rocom')

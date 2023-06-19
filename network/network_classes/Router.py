@@ -16,6 +16,8 @@ IF_TYPE_OID = "IF-MIB::ifType"
 IF_SPEED_OID = "IF-MIB::ifSpeed"
 IP_ADDR_OID = "IP-MIB::ipAdEntAddr"
 IP_MASK_OID = "IP-MIB::ipAdEntNetMask"
+OSPF_NBR_IP_OID = 'OSPF-MIB::ospfNbrIpAddr'
+
 
 INTERFACE_INDEX_TO_ADDR_OID = "RFC1213-MIB::ipAdEntIfIndex"
 
@@ -49,6 +51,9 @@ class Router:
 
     def get_interfaces(self):
         return self.interfaces
+
+    def get_ips(self):
+        return [interface.ip for interface in self.interfaces]
 
     def add_route(self, route):
         self.routing_table.append(route)
@@ -173,20 +178,14 @@ class Router:
     def get_known_routers(self, community):
         session = Session(hostname=str(self.ip), community=community, version=2)
 
-        ospf_nbr_ip_oid = 'OSPF-MIB::ospfNbrIpAddr'
-
         # Retrieve the OSPF neighbor IP addresses
-        ospf_nbr_ips = session.walk(ospf_nbr_ip_oid)
-
-        # Retrieve the OSPF neighbor router IDs
+        ospf_nbr_ips = session.walk(OSPF_NBR_IP_OID)
 
         known_routers = []
 
         # Iterate over the retrieved information for each OSPF neighbor
         for i in range(len(ospf_nbr_ips)):
             nbr_ip = ospf_nbr_ips[i].value
-
-            # Append the neighbor to the list of known routers
             known_routers.append(nbr_ip)
 
         return known_routers

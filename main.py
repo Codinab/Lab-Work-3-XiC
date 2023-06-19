@@ -13,6 +13,8 @@ def main():
     parser.add_argument('--create-network-graph', '-g', action='store_true', help="Create network graph")
     parser.add_argument('--graph-file', default='', help="File name (Default=network_map)")
     parser.add_argument('--all', '-a', action='store_true', help="Execute all actions")
+    parser.add_argument('--path', '-p', nargs=2, metavar=('ORIGIN', 'DEST'), help="Find the shortest path between two ips")
+
 
     args = parser.parse_args()
 
@@ -34,6 +36,10 @@ def main():
 
     if args.create_network_graph:
         draw_network_map(nm, args.graph_file)
+
+    if args.path:
+        path = nm.get_shortest_path(args.path[0], args.path[1])
+        print([router.name for router in path])
 
 
 if __name__ == '__main__':

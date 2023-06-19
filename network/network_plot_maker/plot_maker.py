@@ -58,4 +58,4 @@ def draw_network_map(network_manager: NetworkManager, graph_file):
 
 if __name__ == '__main__':
     network_manager = NetworkManager('10.0.0.2', 'rocom')
-    draw_network_map(network_manager)
+    draw_network_map(network_manager, "")
